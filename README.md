@@ -1,161 +1,92 @@
-JSON Parser in Prolog & Common Lisp — LP E2P 2023
+# JSON Parsing Libraries in Prolog and Common Lisp
 
-Librerie per il parsing di stringhe JSON, l’accesso ai campi (inclusi array e sotto-oggetti) e l’I/O su file in SWI-Prolog e Common Lisp.
-Il progetto rispetta i vincoli dell’assegnamento accademico (LP E2P 2023) ed è pensato per essere semplice da leggere, provare e riusare.
+## 📌 Project Overview
+This repository contains the implementation of a **JSON parser** developed as part of the *Linguaggi di Programmazione* university project (February 2023).  
+The goal of the project was to implement two libraries — one in **Prolog** and one in **Common Lisp** — capable of parsing JSON strings into internal data structures and providing access methods for navigating JSON objects and arrays.
 
-Caratteristiche
+Both implementations support:
+- Parsing of JSON objects and arrays.
+- Recursive decomposition of JSON structures.
+- Accessing nested values via path navigation.
+- Input/Output operations (reading JSON from file and writing JSON to file).
+- Error handling for invalid JSON syntax.
 
-Parser JSON → struttura interna:
+---
 
-Prolog: jsonobj(Members) / jsonarray(Elements)
+## 📂 Repository Structure
+```
+.
+├── Group.txt
+├── Prolog
+│   ├── jsonparse.pl
+│   └── README.txt
+├── Lisp
+│   ├── jsonparse.lisp
+│   └── README.txt
+```
 
-Lisp: (JSONOBJ …) / (JSONARRAY …)
+- **Group.txt** → Contains student(s) name(s) and matricola in CSV format.  
+- **Prolog/jsonparse.pl** → Prolog implementation of the JSON parser.  
+- **Lisp/jsonparse.lisp** → Common Lisp implementation of the JSON parser.  
+- **README.txt** (inside Prolog and Lisp folders) → Additional usage instructions.
 
-Accessor:
+---
 
-Prolog: jsonaccess(Json, Fields, Result) oppure jsonaccess(Json, Field, Result)
+## ⚙️ Implemented Features
 
-Lisp: (jsonaccess json "field" 0 …)
+### Prolog
+- **`jsonparse/2`**  
+  Parses a JSON string into a structured Prolog representation (`jsonobj`, `jsonarray`).
+- **`jsonaccess/3`**  
+  Accesses values inside JSON objects/arrays using field names or numeric indices.  
+- **`jsonread/2`** and **`jsondump/2`**  
+  Read and write JSON data from/to files.
 
-I/O su file:
+### Common Lisp
+- **`jsonparse`**  
+  Parses a JSON string into a structured Lisp representation.  
+- **`jsonaccess`**  
+  Retrieves nested values from parsed JSON objects/arrays.  
+- **`jsonread`** and **`jsondump`**  
+  File input/output for JSON objects.
 
-Prolog: jsonread/2, jsondump/2
+---
 
-Lisp: (jsonread ...), (jsondump ...)
+## ▶️ Usage Examples
 
-Indicizzazione array 0-based (sia in Prolog che in Lisp)
-
-Gestione di oggetti, array, stringhe e numeri secondo la specifica richiesta
-
-Nota: come da specifica del progetto, non è richiesto supporto a Unicode/escape avanzati.
-
-Struttura del repository
-lp-e2p-json-parser-prolog-lisp/
-├─ Group.txt
-├─ Prolog/
-│  ├─ jsonparse.pl
-│  └─ README.txt
-└─ Lisp/
-   ├─ jsonparse.lisp
-   └─ README.txt
-
-
-Autore: Sandu Stoicov — Matricola 816594 (vedi Group.txt)
-
-Requisiti
-
-Prolog: SWI-Prolog (consigliato 8.x o superiore)
-
-Lisp: SBCL / CLISP / LispWorks (qualsiasi Common Lisp conforme va bene)
-
-Quick Start
-🟦 Prolog (SWI-Prolog)
-
-Avvio rapido:
-
-% Avvia la REPL
-$ swipl
-
-% Carica il parser
-?- [ 'Prolog/jsonparse.pl' ].
-
-
-Esempi:
-
-% Oggetto semplice + accesso a campo
+### Prolog
+```prolog
 ?- jsonparse('{"nome":"Arthur","cognome":"Dent"}', O),
    jsonaccess(O, ["nome"], R).
-% R = "Arthur".
+O = jsonobj([("nome","Arthur"),("cognome","Dent")]),
+R = "Arthur".
+```
 
-% Array con indice 0-based
-?- jsonparse('{"heads":["Head1","Head2"]}', O),
-   jsonaccess(O, ["heads", 1], R).
-% R = "Head2".
+### Common Lisp
+```lisp
+(defparameter x (jsonparse "{"nome" : "Arthur", "cognome" : "Dent"}"))
+=> X
 
-% Oggetti e array vuoti
-?- jsonparse('{}', O).         % O = jsonobj([])
-?- jsonparse('[]', A).         % A = jsonarray([])
+(jsonaccess x "cognome")
+=> "Dent"
+```
 
-% I/O su file
-?- jsondump(jsonobj([("a",1),("b",jsonarray([2,3]))]), "out.json").
-?- jsonread("out.json", J).
+---
 
-🟨 Common Lisp
+## 🛠️ Requirements
+- **Prolog** → SWI-Prolog  
+- **Lisp** → LispWorks / SBCL  
 
-Avvio con SBCL:
+Ensure that your environment supports file I/O operations.
 
-; Avvia SBCL e carica il file
-$ sbcl --load Lisp/jsonparse.lisp
+---
 
+## 👨‍💻 Authors
+- **Sandu Stoicov** (Matricola: 816594)
 
-Esempi:
+---
 
-;; Parsing + accesso
-(defparameter *x* (jsonparse "{\"nome\":\"Arthur\",\"cognome\":\"Dent\"}"))
-(jsonaccess *x* "cognome")
-;; => "Dent"
-
-;; Array 0-based
-(jsonaccess (jsonparse "{\"heads\":[\"Head1\",\"Head2\"]}") "heads" 1)
-;; => "Head2"
-
-;; Oggetti/array vuoti
-(jsonparse "{}")   ;; => (JSONOBJ)
-(jsonparse "[]")   ;; => (JSONARRAY)
-
-;; I/O su file
-(jsondump '(JSONOBJ ("a" 1) ("b" (JSONARRAY 2 3))) "out.json")
-(jsonread "out.json")
-
-Note d’implementazione
-
-Prolog:
-
-parsing multi-forma (stringa/atomo/lista di char) → struttura jsonobj/jsonarray
-
-jsonaccess/3 gestisce sia catene di campi (lista) sia campo singolo (stringa)
-
-I/O tramite jsonread/2 (lettura e parse) e jsondump/2 (serializzazione standard)
-
-Common Lisp:
-
-funzioni principali: jsonparse, jsonaccess, jsonread, jsondump
-
-selettori di campo/indice robusti con errori significativi (out of bounds, field errato)
-
-Esempi di test suggeriti
-
-Oggetti annidati con array eterogenei
-
-Errori di sintassi (es.: "{]") → segnalazione/fail
-
-Accessi a:
-
-campo inesistente
-
-indice array fuori range
-
-catene miste ("k1", 0, "k2"…)
-
-Roadmap (facoltativa)
-
-Pretty-print del JSON in output
-
-Supporto opzionale a escape/unicode
-
-Suite di test automatica (Prolog unit, FiveAM in CL)
-
-Licenza
-
-MIT (o altra a tua scelta).
-Aggiungi un file LICENSE se intendi renderlo open-source.
-
-Acknowledgments
-
-Progetto realizzato nell’ambito del corso “Linguaggi di Programmazione” (LP E2P 2023), Università degli Studi di Milano-Bicocca. Requisiti e traccia d’esame alla base di questa implementazione.
-
-English (short)
-
-JSON parser & accessor in SWI-Prolog and Common Lisp, including file I/O.
-Zero-based array indexing; objects, arrays, strings and numbers supported.
-See examples above for quick usage in both languages.
+## 🏫 University Information
+Project for **Linguaggi di Programmazione**  
+Università degli Studi di Milano-Bicocca  
+A.Y. 2022/2023
